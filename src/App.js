@@ -33,39 +33,39 @@ function Chatbot() {
 
   const sendMessage = async () => {
     if (input.trim() === "") return;
-    console.log("API KEY:", API_KEY);
     setLoading(true);
+
     const newMessage = { text: input, sender: "user" };
-    setMessages([...messages, newMessage]);
+    const updatedMessages = [...messages, newMessage]; 
+    setMessages(updatedMessages);
     setInput("");
 
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${API_KEY}`;
+
+    const history = updatedMessages.map((message) => ({
+      role: message.sender === "user" ? "user" : "model",
+      parts: [{ text: message.text }],
+    }));
 
     try {
       const response = await axios.post(API_URL, {
         contents: [
           {
-            parts: [
-              {
-                text: input,
-              },
-            ],
+            role: "user",
+            parts: [{ text: input }],
           },
+          ...history,
         ],
       });
 
       const geminiResponse = response.data.candidates[0].content.parts[0].text;
       const botMessage = { text: geminiResponse, sender: "bot" };
-      setMessages([...messages, newMessage, botMessage]);
+      setMessages([...updatedMessages, botMessage]); 
     } catch (error) {
       console.error("Error sending message:", error);
       const errorMessage =
-        error.response?.data?.error?.message || "Sorry, something went wrong."; // More helpful error messages
-      setMessages([
-        ...messages,
-        newMessage,
-        { text: errorMessage, sender: "bot" },
-      ]);
+        error.response?.data?.error?.message || "Sorry, something went wrong.";
+      setMessages([...updatedMessages, { text: errorMessage, sender: "bot" }]);
     } finally {
       setLoading(false);
     }
@@ -74,17 +74,18 @@ function Chatbot() {
   return (
     <div className="min-h-screen lg:max-h-screen bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-4 md:p-8 lg:p-12 flex justify-center items-center">
       <div className="w-full rounded-3xl shadow-2xl overflow-hidden">
-      <div className="flex items-center p-4 md:p-6 from-indigo-500 via-purple-500 to-pink-500 "> {/* Added flex container */}
-        <img
-          src={icon_gemini} 
-          alt="Orion AI Logo"
-          className="h-8 w-8 md:h-12 md:w-12 mr-4" 
-        />
-        <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold  text-white  md:p-2 text-start">
-          Orion AI
-        </h1>
-      </div>
-        <div className="h-[300px] md:h-[400px] lg:h-[500px] overflow-y-auto p-4 md:p-6 space-y-4 bg-gray-50">
+        <div className="flex items-center p-4 md:p-6 from-indigo-500 via-purple-500 to-pink-500">
+          {" "}
+          <img
+            src={icon_gemini}
+            alt="Orion AI Logo"
+            className="h-8 w-8 md:h-12 md:w-12 mr-4"
+          />
+          <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold  text-white  md:p-2 text-start">
+            Orion AI
+          </h1>
+        </div>
+        <div className="md:h-[400px] lg:h-[500px] overflow-y-auto p-4 md:p-6 space-y-4 bg-gray-50">
           {messages.map((message, index) => (
             <div
               key={index}
