@@ -1,1 +1,1 @@
-Orion AI, a chatbot based on various gemini model using gemini api 
+Orion AI, a chatbot built based on various gemini model using gemini API.
