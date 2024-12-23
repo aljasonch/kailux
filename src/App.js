@@ -1,11 +1,39 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { FiPower, FiClipboard } from "react-icons/fi";
 
 const API_KEY = process.env.REACT_APP_API_KEY;
 const MODEL_IMAGE_URL = "/gemini.png";
 const CORRECT_PASSWORD = process.env.REACT_APP_CORRECT_PASSWORD;
+
+const CodeBlock = ({ children, className }) => {
+  const [isCopied, setIsCopied] = useState(false);
+
+  const handleCopyClick = () => {
+    navigator.clipboard
+      .writeText(String(children).replace(/\n$/, ""))
+      .then(() => {
+        setIsCopied(true);
+        setTimeout(() => setIsCopied(false), 1500);
+      })
+      .catch((err) => console.error("Could not copy text: ", err));
+  };
+
+  return (
+    <div className="overflow-x-auto relative">
+      <code className={className}>{children}</code>
+      <button
+        className="absolute top-2 right-2 bg-gray-700 hover:bg-gray-600 text-white rounded-md p-1 text-xs focus:outline-none"
+        onClick={handleCopyClick}
+        title={isCopied ? "Copied!" : "Copy code"}
+      >
+        {isCopied ? "✅" : <FiClipboard />}
+      </button>
+    </div>
+  );
+};
 
 function Chatbot() {
   const [input, setInput] = useState("");
@@ -15,6 +43,7 @@ function Chatbot() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState(false);
+  const chatboxRef = useRef(null);
 
   useEffect(() => {
     const storedLoginStatus = localStorage.getItem("isLoggedIn");
@@ -22,6 +51,12 @@ function Chatbot() {
       setIsLoggedIn(true);
     }
   }, []);
+
+  useEffect(() => {
+    if (chatboxRef.current) {
+      chatboxRef.current.scrollTop = chatboxRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   const modelOptions = [
     { id: "pro", value: "gemini-1.5-pro", label: "Gemini 1.5 Pro" },
@@ -44,6 +79,8 @@ function Chatbot() {
     const updatedMessages = [...messages, newMessage];
     setMessages(updatedMessages);
     setInput("");
+
+    const startTime = Date.now();
     setTyping(true);
 
     const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${API_KEY}`;
@@ -51,8 +88,10 @@ function Chatbot() {
     try {
       const formattedMessages = updatedMessages.map((msg) => ({
         role: msg.role,
-        parts: [{ text: msg.text }],
+        parts: [{ text: msg.output || msg.text || "" }],
       }));
+
+      console.log("Formatted Messages (before API call):", formattedMessages);
 
       const response = await axios.post(API_URL, {
         contents: formattedMessages,
@@ -81,7 +120,13 @@ function Chatbot() {
         };
       }
 
-      setMessages((prevMessages) => [...prevMessages, botMessage]);
+      const endTime = Date.now();
+      const elapsed = (endTime - startTime) / 1000;
+
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { ...botMessage, thinkingTime: elapsed },
+      ]);
       setTyping(false);
     } catch (error) {
       console.error("Error sending message:", error);
@@ -117,8 +162,8 @@ function Chatbot() {
 
   if (!isLoggedIn) {
     return (
-      <div className="bg-[#212121] text-white h-screen flex flex-col items-center justify-center px-4">
-        <div className="bg-[#2F2F2F] p-8 rounded-xl shadow-md w-full max-w-md transform transition-all duration-300 ease-in-out hover:scale-105">
+      <div className="bg-[#212121] text-white h-screen flex flex-col items-center justify-center">
+        <div className="bg-[#2F2F2F] p-8 rounded-xl shadow-md w-full max-w-sm transform transition-all duration-300 ease-in-out hover:scale-105">
           <div className="mb-4">
             <input
               type="password"
@@ -151,12 +196,12 @@ function Chatbot() {
 
   return (
     <div className="bg-[#212121] text-white h-screen flex flex-col">
-      <div className="flex items-center justify-between px-4 sm:px-10 md:px-20 lg:px-36 py-4">
-        <div className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4">
+      <div className="px-4 py-4 sm:px-10 md:px-20 lg:px-36 flex items-center justify-between flex-wrap sm:flex-nowrap">
+        <div className="w-full sm:w-auto mb-2 sm:mb-0 flex sm:block items-center">
           <select
             value={selectedModel}
             onChange={(e) => setSelectedModel(e.target.value)}
-            className="bg-[#2F2F2F] text-white p-2 rounded-2xl w-full poppins-regular text-sm focus:outline-none"
+            className="bg-[#2F2F2F] text-white p-2 rounded-2xl w-full sm:w-auto poppins-regular text-sm focus:outline-none mr-2 sm:mr-0"
           >
             {modelOptions.map((option) => (
               <option key={option.id} value={option.value}>
@@ -164,10 +209,16 @@ function Chatbot() {
               </option>
             ))}
           </select>
+          <button
+            onClick={handleLogout}
+            className="sm:hidden bg-red-500 hover:bg-red-600 text-white font-bold p-2 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-1 active:scale-95"
+          >
+            <FiPower />
+          </button>
         </div>
         <button
           onClick={handleLogout}
-          className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-1 active:scale-95"
+          className="hidden sm:block bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-1 active:scale-95"
         >
           Log Out
         </button>
@@ -175,8 +226,9 @@ function Chatbot() {
 
       <div className="px-4 sm:px-10 md:px-20 lg:px-36 flex-grow overflow-hidden">
         <div
-          className="overflow-y-auto hide-scrollbar"
+          className="overflow-y-auto hide-scrollbar pb-8 sm:pb-6 md:pb-4 lg:pb-4"
           style={{ height: "calc(100vh - 150px)" }}
+          ref={chatboxRef}
         >
           {messages.map((message, index) => (
             <div
@@ -196,39 +248,66 @@ function Chatbot() {
                 className={`rounded-3xl p-3 ${
                   message.role === "user"
                     ? "bg-[#2F2F2F] text-right poppins-regular px-4"
-                    : "bg-[#212121] text-left poppins-regular max-w-full cursor-pointer"
+                    : "bg-[#212121] text-left poppins-regular max-w-[80%] sm:max-w-[70%] md:max-w-[60%] lg:max-w-[100%] relative"
                 }`}
               >
                 {message.role === "model" &&
                 message.thinking &&
                 message.output ? (
-                  <ThinkingOutput message={message} />
+                  <ThinkingOutput
+                    message={message}
+                    thinkingTime={message.thinkingTime}
+                  />
                 ) : message.role === "model" ? (
-                  <ReactMarkdown
-                    className="text-sm leading-5 poppins-regular markdown-output"
-                    remarkPlugins={[remarkGfm]}
-                  >
-                    {message.text}
-                  </ReactMarkdown>
+                  <>
+                    <ReactMarkdown
+                      className="text-sm leading-5 poppins-regular markdown-output"
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        code({ node, inline, className, children, ...props }) {
+                          const match = /language-(\w+)/.exec(className || "");
+                          return !inline && match ? (
+                            <CodeBlock className={className}>
+                              {children}
+                            </CodeBlock>
+                          ) : (
+                            <code className={className} {...props}>
+                              {children}
+                            </code>
+                          );
+                        },
+                      }}
+                    >
+                      {message.text}
+                    </ReactMarkdown>
+                  </>
                 ) : (
-                  <p className="text-sm">{message.text}</p>
+                  <p className="text-sm break-words">{message.text}</p>
                 )}
               </div>
             </div>
           ))}
-          {typing && (
+          {typing && selectedModel !== "gemini-2.0-flash-thinking-exp" && (
             <div className="flex justify-start items-start mb-4 animate-pulse">
               <img
                 src={MODEL_IMAGE_URL}
                 alt="Model Avatar"
                 className="w-8 h-8 sm:w-10 sm:h-10 rounded-full mr-2"
               />
-              <div className="rounded-lg p-3 text-left max-w-full bg-[#2F2F2F]">
-                <p className="text-sm poppins-regular">
-                  {selectedModel === "gemini-2.0-flash-thinking-exp"
-                    ? "Thinking..."
-                    : "Typing..."}
-                </p>
+              <div className="rounded-lg p-3 text-left max-w-full">
+                <p className="text-sm poppins-regular">Typing...</p>
+              </div>
+            </div>
+          )}
+          {typing && selectedModel === "gemini-2.0-flash-thinking-exp" && (
+            <div className="flex justify-start items-start mb-4 animate-pulse">
+              <img
+                src={MODEL_IMAGE_URL}
+                alt="Model Avatar"
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full mr-2"
+              />
+              <div className="rounded-lg p-3 text-left max-w-full]">
+                <p className="text-sm poppins-regular">Thinking...</p>
               </div>
             </div>
           )}
@@ -277,7 +356,7 @@ function Chatbot() {
   );
 }
 
-const ThinkingOutput = ({ message }) => {
+const ThinkingOutput = ({ message, thinkingTime }) => {
   const [showThinking, setShowThinking] = useState(false);
 
   const handleToggleThinking = () => {
@@ -285,34 +364,66 @@ const ThinkingOutput = ({ message }) => {
   };
 
   return (
-    <div className="text-sm poppins-regular" onClick={handleToggleThinking}>
-      {!showThinking && message.thinking && (
-        <p
-          className="text-xs text-gray-500 cursor-pointer hover:text-gray-400 transition-colors duration-200"
-          onClick={handleToggleThinking}
-        >
-          Thinking
-        </p>
-      )}
-      <ReactMarkdown
-        className="text-sm leading-5 poppins-regular markdown-output"
-        remarkPlugins={[remarkGfm]}
-      >
-        {message.output}
-      </ReactMarkdown>
-      {showThinking && (
+    <div
+      className="text-sm poppins-regular break-words"
+      onClick={handleToggleThinking}
+    >
+            {showThinking && (
         <div>
-          <p className="text-sm poppins-regular italic text-gray-400 mt-2">
+          <p className="text-sm poppins-regular italic cursor-pointer text-gray-400 mt-2">
             Thinking Process
           </p>
           <ReactMarkdown
             className="text-sm leading-5 poppins-regular markdown-output"
             remarkPlugins={[remarkGfm]}
+            components={{
+              code({ node, inline, className, children, ...props }) {
+                const match = /language-(\w+)/.exec(className || "");
+                return !inline && match ? (
+                  <CodeBlock className={className}>{children}</CodeBlock>
+                ) : (
+                  <code className={className} {...props}>
+                    {children}
+                  </code>
+                );
+              },
+            }}
           >
             {message.thinking}
           </ReactMarkdown>
+          <hr className="my-4"/>
         </div>
       )}
+      {!showThinking && message.thinking && (
+        <>
+          {thinkingTime > 0 && (
+            <p
+              className="text-sm text-gray-500 cursor-pointer hover:text-gray-400 transition-colors duration-200"
+              onClick={handleToggleThinking}
+            >
+              Thinking for {thinkingTime.toFixed(1)} Seconds
+            </p>
+          )}
+        </>
+      )}
+      <ReactMarkdown
+        className="text-sm leading-5 poppins-regular markdown-output"
+        remarkPlugins={[remarkGfm]}
+        components={{
+          code({ node, inline, className, children, ...props }) {
+            const match = /language-(\w+)/.exec(className || "");
+            return !inline && match ? (
+              <CodeBlock className={className}>{children}</CodeBlock>
+            ) : (
+              <code className={className} {...props}>
+                {children}
+              </code>
+            );
+          },
+        }}
+      >
+        {message.output}
+      </ReactMarkdown>
     </div>
   );
 };
