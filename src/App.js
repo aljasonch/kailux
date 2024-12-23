@@ -64,7 +64,7 @@ const Dropdown = ({ options, selectedValue, onSelect }) => {
     <div className="relative" ref={dropdownRef}>
       <button
         type="button"
-        className="bg-[#2F2F2F] text-white p-2 rounded-2xl min-w-[300px] sm:max-w-96 poppins-regular text-sm focus:outline-none flex items-center text-start sm:text-sm justify-between"
+        className="bg-[#430f5f] text-white p-2 rounded-2xl min-w-[300px] sm:max-w-96 poppins-regular text-sm focus:outline-none flex items-center text-start sm:text-sm justify-between"
         onClick={toggleOpen}
       >
         {options.find((option) => option.value === selectedValue)?.label ||
@@ -87,11 +87,11 @@ const Dropdown = ({ options, selectedValue, onSelect }) => {
         </svg>
       </button>
       {isOpen && (
-        <div className="absolute left-0 mt-2 min-w-[300px] sm:max-w-96 rounded-md shadow-lg z-10 bg-[#2F2F2F]">
+        <div className="absolute left-0 mt-2 min-w-[300px] sm:max-w-96 rounded-md shadow-lg z-10 bg-[#430f5f]">
           {options.map((option) => (
             <button
               key={option.value}
-              className="block px-4 py-2 text-left text-sm poppins-regular text-white hover:bg-gray-700 w-full focus:outline-none"
+              className="block px-4 py-2 text-left text-sm poppins-regular text-white hover:bg-[#7A1CAC] w-full focus:outline-none"
               onClick={() => handleOptionClick(option.value)}
             >
               {option.label}
@@ -169,7 +169,6 @@ function Chatbot() {
         parts: [{ text: msg.output || msg.text || "" }],
       }));
 
-
       const response = await axios.post(API_URL, {
         contents: formattedMessages,
       });
@@ -239,15 +238,15 @@ function Chatbot() {
 
   if (!isLoggedIn) {
     return (
-      <div className="bg-[#212121] text-white h-screen flex flex-col items-center justify-center">
-        <div className="bg-[#2F2F2F] p-8 rounded-xl shadow-md w-full max-w-sm transform transition-all duration-300 ease-in-out hover:scale-105">
+      <div className="bg-[#2E073F] text-white h-screen flex flex-col items-center justify-center">
+        <div className="bg-[#430f5f] p-8 rounded-xl shadow-md w-full max-w-sm transform transition-all duration-300 ease-in-out hover:scale-105">
           <div className="mb-4">
             <input
               type="password"
               value={password}
               onChange={handlePasswordChange}
               placeholder="Enter password"
-              className="bg-gray-700 border border-gray-600 text-white placeholder-gray-500 p-3 rounded-lg w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-shadow duration-200"
+              className="bg-[#7A1CAC] text-white p-3 rounded-lg w-full transition-shadow duration-200 focus:ring-2 focus:ring-[#6A1B9A] focus:ring-opacity-50 outline-none"
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   handleLogin();
@@ -257,7 +256,7 @@ function Chatbot() {
           </div>
           <button
             onClick={handleLogin}
-            className="bg-gradient-to-r from-blue-600 to-indigo-700 hover:from-indigo-700 hover:to-blue-600 text-white font-bold py-3 px-6 rounded-lg w-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="bg-[#6A1B9A] hover:bg-[#5c1a7f] text-white font-bold py-3 px-6 rounded-lg w-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-[#6A1B9A] focus:ring-opacity-50"
           >
             Log In
           </button>
@@ -272,9 +271,9 @@ function Chatbot() {
   }
 
   return (
-    <div className="bg-[#212121] text-white h-screen flex flex-col">
+    <div className="bg-[#2E073F] text-white h-screen flex flex-col">
       {/* Header Section */}
-      <div className="sticky top-0 bg-[#212121] z-10 px-4 py-4 sm:px-10 md:px-20 lg:px-36 flex items-center justify-between flex-wrap sm:flex-nowrap">
+      <div className="sticky top-0 bg-[#2E073F] z-10 px-4 py-4 sm:px-10 md:px-20 lg:px-36 flex items-center justify-between flex-wrap sm:flex-nowrap">
         <div className="w-96 mb-2 sm:mb-0 flex justify-between sm:block items-center">
           <Dropdown
             options={modelOptions}
@@ -321,13 +320,13 @@ function Chatbot() {
                 <div
                   className={`rounded-3xl p-3 ${
                     isUser
-                      ? "bg-[#2F2F2F] text-right px-4"
-                      : "bg-[#212121] text-left max-w-full sm:max-w-7/10 md:max-w-3/5 lg:max-w-full relative"
+                      ? "bg-[#430f5f] text-right px-4"
+                      : "bg-[#2E073F] text-left max-w-full sm:max-w-7/10 md:max-w-3/5 lg:max-w-full relative"
                   } poppins-regular`}
                 >
                   {isUser ? (
                     <ReactMarkdown
-                      className="text-sm text-start items-center leading-5"
+                      className="text-sm text-start items-center"
                       remarkPlugins={[remarkGfm]}
                       components={{
                         code({ node, inline, className, children, ...props }) {
@@ -396,8 +395,8 @@ function Chatbot() {
         </div>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 px-4 sm:px-10 md:px-20 lg:px-36 pb-6 bg-[#212121] shadow-inner">
-        <div className="w-full bg-[#2F2F2F] rounded-3xl p-3 flex items-center shadow-md">
+      <div className="fixed bottom-0 left-0 right-0 px-4 sm:px-10 md:px-20 lg:px-36 pb-6 bg-[#2E073F] shadow-inner">
+        <div className="w-full bg-[#430f5f] rounded-3xl p-3 flex items-center shadow-md">
           <TextareaAutosize
             value={input}
             onChange={(e) => setInput(e.target.value)}
