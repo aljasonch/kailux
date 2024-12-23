@@ -3,6 +3,7 @@ import axios from "axios";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { FiPower, FiClipboard } from "react-icons/fi";
+import TextareaAutosize from "react-textarea-autosize";
 
 const API_KEY = process.env.REACT_APP_API_KEY;
 const MODEL_IMAGE_URL = "/gemini.png";
@@ -35,8 +36,76 @@ const CodeBlock = ({ children, className }) => {
   );
 };
 
+const Dropdown = ({ options, selectedValue, onSelect }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  const toggleOpen = () => setIsOpen(!isOpen);
+
+  const handleOptionClick = (value) => {
+    onSelect(value);
+    setIsOpen(false);
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [dropdownRef]);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      <button
+        type="button"
+        className="bg-[#2F2F2F] text-white p-2 rounded-2xl min-w-[300px] sm:max-w-96 poppins-regular text-sm focus:outline-none flex items-center text-start sm:text-sm justify-between"
+        onClick={toggleOpen}
+      >
+        {options.find((option) => option.value === selectedValue)?.label ||
+          "Select Model"}
+        <svg
+          className={`w-4 h-4 ml-2 transition-transform ${
+            isOpen ? "rotate-180" : ""
+          }`}
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth="2"
+            d="M19 9l-7 7-7-7"
+          />
+        </svg>
+      </button>
+      {isOpen && (
+        <div className="absolute left-0 mt-2 min-w-[300px] sm:max-w-96 rounded-md shadow-lg z-10 bg-[#2F2F2F]">
+          {options.map((option) => (
+            <button
+              key={option.value}
+              className="block px-4 py-2 text-left text-sm poppins-regular text-white hover:bg-gray-700 w-full focus:outline-none"
+              onClick={() => handleOptionClick(option.value)}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 function Chatbot() {
   const [input, setInput] = useState("");
+  const [inputPlaceholder, setInputPlaceholder] = useState("Type something...");
   const [messages, setMessages] = useState([]);
   const [typing, setTyping] = useState(false);
   const [selectedModel, setSelectedModel] = useState("gemini-2.0-flash-exp");
@@ -44,6 +113,7 @@ function Chatbot() {
   const [password, setPassword] = useState("");
   const [loginError, setLoginError] = useState(false);
   const chatboxRef = useRef(null);
+  const userMessageRef = useRef(null);
 
   useEffect(() => {
     const storedLoginStatus = localStorage.getItem("isLoggedIn");
@@ -55,6 +125,12 @@ function Chatbot() {
   useEffect(() => {
     if (chatboxRef.current) {
       chatboxRef.current.scrollTop = chatboxRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    if (userMessageRef.current) {
+      userMessageRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
 
@@ -75,10 +151,12 @@ function Chatbot() {
 
   const sendMessage = async () => {
     if (input.trim() === "") return;
+
     const newMessage = { role: "user", text: input, image: null };
     const updatedMessages = [...messages, newMessage];
     setMessages(updatedMessages);
     setInput("");
+    setInputPlaceholder("Responding...");
 
     const startTime = Date.now();
     setTyping(true);
@@ -127,6 +205,7 @@ function Chatbot() {
         ...prevMessages,
         { ...botMessage, thinkingTime: elapsed },
       ]);
+      setInputPlaceholder("Type something...");
       setTyping(false);
     } catch (error) {
       console.error("Error sending message:", error);
@@ -136,6 +215,7 @@ function Chatbot() {
         ...prevMessages,
         { role: "model", text: errorMessage, image: MODEL_IMAGE_URL },
       ]);
+      setInputPlaceholder("Type something...");
       setTyping(false);
     }
   };
@@ -196,72 +276,61 @@ function Chatbot() {
 
   return (
     <div className="bg-[#212121] text-white h-screen flex flex-col">
-      <div className="px-4 py-4 sm:px-10 md:px-20 lg:px-36 flex items-center justify-between flex-wrap sm:flex-nowrap">
-        <div className="w-full sm:w-auto mb-2 sm:mb-0 flex sm:block items-center">
-          <select
-            value={selectedModel}
-            onChange={(e) => setSelectedModel(e.target.value)}
-            className="bg-[#2F2F2F] text-white p-2 rounded-2xl w-full sm:w-auto poppins-regular text-sm focus:outline-none mr-2 sm:mr-0"
-          >
-            {modelOptions.map((option) => (
-              <option key={option.id} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+      {/* Header Section */}
+      <div className="sticky top-0 bg-[#212121] z-10 px-4 py-4 sm:px-10 md:px-20 lg:px-36 flex items-center justify-between flex-wrap sm:flex-nowrap">
+        <div className="w-96 mb-2 sm:mb-0 flex justify-between sm:block items-center">
+          <Dropdown
+            options={modelOptions}
+            selectedValue={selectedModel}
+            onSelect={setSelectedModel}
+          />
           <button
             onClick={handleLogout}
-            className="sm:hidden bg-red-500 hover:bg-red-600 text-white font-bold p-2 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-1 active:scale-95"
+            className="sm:hidden bg-red-500 hover:bg-red-600 text-white font-bold p-2 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-1 active:scale-95 ml-2 sm:ml-0"
           >
             <FiPower />
           </button>
         </div>
         <button
           onClick={handleLogout}
-          className="hidden sm:block bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-1 active:scale-95"
+          className="hidden sm:block bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-3xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-1 active:scale-95"
         >
           Log Out
         </button>
       </div>
 
-      <div className="px-4 sm:px-10 md:px-20 lg:px-36 flex-grow overflow-hidden">
+      <div className="px-4 sm:px-10 md:px-20 lg:px-36 flex-grow overflow-hidden flex flex-col">
         <div
-          className="overflow-y-auto hide-scrollbar pb-8 sm:pb-6 md:pb-4 lg:pb-4"
-          style={{ height: "calc(100vh - 150px)" }}
+          className="overflow-y-auto hide-scrollbar pb-24 sm:pb-28 flex-1"
           ref={chatboxRef}
         >
-          {messages.map((message, index) => (
-            <div
-              key={index}
-              className={`flex ${
-                message.role === "user" ? "justify-end" : "items-start"
-              } mb-4`}
-            >
-              {message.role === "model" && (
-                <img
-                  src={message.image}
-                  alt="Model Avatar"
-                  className="w-8 h-8 sm:w-10 sm:h-10 rounded-full mr-2 mt-1"
-                />
-              )}
+          {messages.map((message, index) => {
+            const isUser = message.role === "user";
+            return (
               <div
-                className={`rounded-3xl p-3 ${
-                  message.role === "user"
-                    ? "bg-[#2F2F2F] text-right poppins-regular px-4"
-                    : "bg-[#212121] text-left poppins-regular max-w-[80%] sm:max-w-[70%] md:max-w-[60%] lg:max-w-[100%] relative"
+                key={index}
+                className={`flex mb-4 ${
+                  isUser ? "justify-end" : "items-start"
                 }`}
+                ref={isUser ? userMessageRef : null}
               >
-                {message.role === "model" &&
-                message.thinking &&
-                message.output ? (
-                  <ThinkingOutput
-                    message={message}
-                    thinkingTime={message.thinkingTime}
+                {message.role === "model" && (
+                  <img
+                    src={message.image}
+                    alt="Model Avatar"
+                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-full mr-2 mt-1"
                   />
-                ) : message.role === "model" ? (
-                  <>
+                )}
+                <div
+                  className={`rounded-3xl p-3 ${
+                    isUser
+                      ? "bg-[#2F2F2F] text-right px-4"
+                      : "bg-[#212121] text-left max-w-full sm:max-w-7/10 md:max-w-3/5 lg:max-w-full relative"
+                  } poppins-regular`}
+                >
+                  {isUser ? (
                     <ReactMarkdown
-                      className="text-sm leading-5 poppins-regular markdown-output"
+                      className="text-sm text-start items-center leading-5"
                       remarkPlugins={[remarkGfm]}
                       components={{
                         code({ node, inline, className, children, ...props }) {
@@ -280,59 +349,79 @@ function Chatbot() {
                     >
                       {message.text}
                     </ReactMarkdown>
-                  </>
-                ) : (
-                  <p className="text-sm break-words">{message.text}</p>
-                )}
+                  ) : message.thinking && message.output ? (
+                    <ThinkingOutput
+                      message={message}
+                      thinkingTime={message.thinkingTime}
+                    />
+                  ) : (
+                    <ReactMarkdown
+                      className="text-sm leading-5 markdown-output"
+                      remarkPlugins={[remarkGfm]}
+                      components={{
+                        code({ node, inline, className, children, ...props }) {
+                          const match = /language-(\w+)/.exec(className || "");
+                          return !inline && match ? (
+                            <CodeBlock className={className}>
+                              {children}
+                            </CodeBlock>
+                          ) : (
+                            <code className={className} {...props}>
+                              {children}
+                            </code>
+                          );
+                        },
+                      }}
+                    >
+                      {message.text}
+                    </ReactMarkdown>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
-          {typing && selectedModel !== "gemini-2.0-flash-thinking-exp" && (
-            <div className="flex justify-start items-start mb-4 animate-pulse">
+            );
+          })}
+          {typing && (
+            <div className={`flex mb-4 items-start animate-pulse`}>
               <img
                 src={MODEL_IMAGE_URL}
                 alt="Model Avatar"
-                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full mr-2"
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full mr-2 mt-1"
               />
               <div className="rounded-lg p-3 text-left max-w-full">
-                <p className="text-sm poppins-regular">Typing...</p>
-              </div>
-            </div>
-          )}
-          {typing && selectedModel === "gemini-2.0-flash-thinking-exp" && (
-            <div className="flex justify-start items-start mb-4 animate-pulse">
-              <img
-                src={MODEL_IMAGE_URL}
-                alt="Model Avatar"
-                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full mr-2"
-              />
-              <div className="rounded-lg p-3 text-left max-w-full]">
-                <p className="text-sm poppins-regular">Thinking...</p>
+                <p className="text-sm poppins-regular">
+                  {selectedModel === "gemini-2.0-flash-thinking-exp"
+                    ? "Thinking..."
+                    : "Typing..."}
+                </p>
               </div>
             </div>
           )}
         </div>
       </div>
 
-      <div className="px-4 sm:px-10 md:px-20 lg:px-36 mb-10">
+      <div className="fixed bottom-0 left-0 right-0 px-4 sm:px-10 md:px-20 lg:px-36 pb-6 bg-[#212121] shadow-inner">
         <div className="w-full bg-[#2F2F2F] rounded-3xl p-3 flex items-center shadow-md">
-          <input
-            type="text"
+          <TextareaAutosize
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter") {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
                 sendMessage();
               }
             }}
-            placeholder="Type something..."
-            className="flex-grow bg-transparent text-white outline-none px-2 poppins-regular text-sm"
+            placeholder={inputPlaceholder}
+            className="flex-grow bg-transparent text-white outline-none px-2 poppins-regular text-sm resize-none overflow-auto"
             disabled={typing}
+            minRows={1}
+            maxRows={6}
+            aria-label="Chat input"
           />
           <button
-            className="text-gray-400 hover:text-white focus:outline-none"
+            className="text-gray-400 hover:text-white focus:outline-none ml-2"
             onClick={sendMessage}
             disabled={typing}
+            title="Send Message"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -344,7 +433,7 @@ function Chatbot() {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="transform rotate-45 motion-safe:animate-bounce"
+              className="transform rotate-45 "
             >
               <line x1="22" y1="2" x2="11" y2="13" />
               <polygon points="22 2 15 22 11 13 2 9 22 2" />
@@ -368,7 +457,7 @@ const ThinkingOutput = ({ message, thinkingTime }) => {
       className="text-sm poppins-regular break-words"
       onClick={handleToggleThinking}
     >
-            {showThinking && (
+      {showThinking && (
         <div>
           <p className="text-sm poppins-regular italic cursor-pointer text-gray-400 mt-2">
             Thinking Process
@@ -391,7 +480,7 @@ const ThinkingOutput = ({ message, thinkingTime }) => {
           >
             {message.thinking}
           </ReactMarkdown>
-          <hr className="my-4"/>
+          <hr className="my-4" />
         </div>
       )}
       {!showThinking && message.thinking && (
