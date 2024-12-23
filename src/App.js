@@ -3,7 +3,7 @@ import axios from "axios";
 import ReactMarkdown from "react-markdown";
 
 const API_KEY = process.env.REACT_APP_API_KEY;
-const MODEL_IMAGE_URL = "/gemini.png"; 
+const MODEL_IMAGE_URL = "/gemini.png";
 
 function Chatbot() {
   const [input, setInput] = useState("");
@@ -18,6 +18,11 @@ function Chatbot() {
       id: "flash-2.0-exp",
       value: "gemini-2.0-flash-exp",
       label: "Gemini 2.0 Flash Experimental",
+    },
+    {
+      id: "flash-thinking-exp",
+      value: "gemini-2.0-flash-thinking-exp",
+      label: "Gemini 2.0 Flash Thinking Experimental",
     },
   ];
 
@@ -56,7 +61,7 @@ function Chatbot() {
         error.response?.data?.error?.message || "Sorry, an error occurred.";
       setMessages((prevMessages) => [
         ...prevMessages,
-        { role: "model", text: errorMessage, image: MODEL_IMAGE_URL }, 
+        { role: "model", text: errorMessage, image: MODEL_IMAGE_URL },
       ]);
       setTyping(false);
     }
@@ -89,7 +94,7 @@ function Chatbot() {
             <div
               key={index}
               className={`flex ${
-                message.role === "user" ? "justify-end" : "items-start" 
+                message.role === "user" ? "justify-end" : "items-start"
               } mb-4`}
             >
               {message.role === "model" && (
