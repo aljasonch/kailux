@@ -6,7 +6,7 @@ import { FiPower, FiClipboard } from "react-icons/fi";
 import TextareaAutosize from "react-textarea-autosize";
 
 const API_KEY = process.env.REACT_APP_API_KEY;
-const MODEL_IMAGE_URL = "/gemini.png";
+const MODEL_IMAGE_URL = "/kailux.png";
 const CORRECT_PASSWORD = process.env.REACT_APP_CORRECT_PASSWORD;
 
 const CodeBlock = ({ children, className }) => {
@@ -169,13 +169,10 @@ function Chatbot() {
         parts: [{ text: msg.output || msg.text || "" }],
       }));
 
-      console.log("Formatted Messages (before API call):", formattedMessages);
 
       const response = await axios.post(API_URL, {
         contents: formattedMessages,
       });
-
-      console.log("Gemini API Response:", response.data);
 
       const responseParts = response.data.candidates[0].content.parts;
       let botMessage;
