@@ -7,7 +7,6 @@ import TextareaAutosize from "react-textarea-autosize";
 
 const API_KEY = process.env.REACT_APP_API_KEY;
 const MODEL_IMAGE_URL = "/kailux.png";
-const CORRECT_PASSWORD = process.env.REACT_APP_CORRECT_PASSWORD;
 
 const CodeBlock = ({ children, className }) => {
   const [isCopied, setIsCopied] = useState(false);
@@ -109,18 +108,8 @@ function Chatbot() {
   const [messages, setMessages] = useState([]);
   const [typing, setTyping] = useState(false);
   const [selectedModel, setSelectedModel] = useState("gemini-2.0-flash-exp");
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [password, setPassword] = useState("");
-  const [loginError, setLoginError] = useState(false);
   const chatboxRef = useRef(null);
   const userMessageRef = useRef(null);
-
-  useEffect(() => {
-    const storedLoginStatus = localStorage.getItem("isLoggedIn");
-    if (storedLoginStatus === "true") {
-      setIsLoggedIn(true);
-    }
-  }, []);
 
   useEffect(() => {
     if (chatboxRef.current) {
@@ -216,59 +205,9 @@ function Chatbot() {
     }
   };
 
-  const handleLogin = () => {
-    if (password === CORRECT_PASSWORD) {
-      setIsLoggedIn(true);
-      setLoginError(false);
-      localStorage.setItem("isLoggedIn", "true");
-    } else {
-      setLoginError(true);
-    }
-  };
-
   const handleLogout = () => {
-    setIsLoggedIn(false);
-    localStorage.setItem("isLoggedIn", "false");
     setMessages([]);
   };
-
-  const handlePasswordChange = (event) => {
-    setPassword(event.target.value);
-  };
-
-  if (!isLoggedIn) {
-    return (
-      <div className="bg-[#2E073F] text-white h-screen flex flex-col items-center justify-center">
-        <div className="bg-[#430f5f] p-8 rounded-xl shadow-md w-full max-w-sm transform transition-all duration-300 ease-in-out hover:scale-105">
-          <div className="mb-4">
-            <input
-              type="password"
-              value={password}
-              onChange={handlePasswordChange}
-              placeholder="Enter password"
-              className="bg-[#7A1CAC] text-white p-3 rounded-lg w-full transition-shadow duration-200 focus:ring-2 focus:ring-[#6A1B9A] focus:ring-opacity-50 outline-none"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleLogin();
-                }
-              }}
-            />
-          </div>
-          <button
-            onClick={handleLogin}
-            className="bg-[#6A1B9A] hover:bg-[#5c1a7f] text-white font-bold py-3 px-6 rounded-lg w-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-[#6A1B9A] focus:ring-opacity-50"
-          >
-            Log In
-          </button>
-          {loginError && (
-            <p className="text-red-500 mt-4 text-center animate-shake">
-              Incorrect password!
-            </p>
-          )}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="bg-[#2E073F] text-white h-screen flex flex-col">
@@ -291,10 +230,11 @@ function Chatbot() {
           onClick={handleLogout}
           className="hidden sm:block bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-3xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-1 active:scale-95"
         >
-          Log Out
+          Clear Chat
         </button>
       </div>
 
+      {/* Chat Messages Section */}
       <div className="px-4 sm:px-10 md:px-20 lg:px-36 flex-grow overflow-hidden flex flex-col">
         <div
           className="overflow-y-auto hide-scrollbar pb-24 sm:pb-28 flex-1"
@@ -395,6 +335,7 @@ function Chatbot() {
         </div>
       </div>
 
+      {/* Input Section */}
       <div className="fixed bottom-0 left-0 right-0 px-4 sm:px-10 md:px-20 lg:px-36 pb-6 bg-[#2E073F] shadow-inner">
         <div className="w-full bg-[#430f5f] rounded-3xl p-3 flex items-center shadow-md">
           <TextareaAutosize
@@ -429,7 +370,7 @@ function Chatbot() {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="transform rotate-45 "
+              className="transform rotate-45"
             >
               <line x1="22" y1="2" x2="11" y2="13" />
               <polygon points="22 2 15 22 11 13 2 9 22 2" />
