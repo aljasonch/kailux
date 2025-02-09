@@ -320,7 +320,7 @@ function Chatbot() {
               />
               <div className="rounded-lg p-3 text-left max-w-full">
                 <p className="text-sm poppins-regular">
-                  {selectedModel === "gemini-2.0-flash-thinking-exp"
+                  {selectedModel === "gemini-2.0-flash-thinking-exp-01-21"
                     ? "Thinking..."
                     : "Typing..."}
                 </p>
