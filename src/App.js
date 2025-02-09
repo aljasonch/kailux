@@ -124,7 +124,7 @@ function Chatbot() {
   }, [messages]);
 
   const modelOptions = [
-    { id: "flash-2.0", value: "gemini-2.0-flash, label: "Gemini 2.0 Flash" },
+    { id: "flash-2.0", value: "gemini-2.0-flash", label: "Gemini 2.0 Flash" },
     { id: "pro-2.0" value: "gemini-2.0-pro-exp-02-05", label: "Gemini 2.0 Pro Experimental 02-05" },
     {
       id: "flash-thinking-exp",
