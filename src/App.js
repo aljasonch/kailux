@@ -128,7 +128,7 @@ function Chatbot() {
     { id: "pro-2.0", value: "gemini-2.0-pro-exp-02-05", label: "Gemini 2.0 Pro Experimental 02-05" },
     {
       id: "flash-thinking-exp",
-      value: "gemini-2.0-flash-thinking-01-21",
+      value: "gemini-2.0-flash-thinking-exp-01-21",
       label: "Gemini 2.0 Flash Thinking Experimental 01-21",
     },
   ];
