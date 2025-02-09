@@ -125,7 +125,7 @@ function Chatbot() {
 
   const modelOptions = [
     { id: "flash-2.0", value: "gemini-2.0-flash", label: "Gemini 2.0 Flash" },
-{ id: "pro-2.0", value: "gemini-2.0-pro-exp-02-05", label: "Gemini 2.0 Pro Experimental 02-05" },
+    { id: "pro-2.0", value: "gemini-2.0-pro-exp-02-05", label: "Gemini 2.0 Pro Experimental 02-05" },
     {
       id: "flash-thinking-exp",
       value: "gemini-2.0-flash-thinking-01-21",
@@ -216,14 +216,14 @@ function Chatbot() {
           />
           <button
             onClick={handleLogout}
-            className="sm:hidden bg-red-500 hover:bg-red-600 text-white font-bold p-2 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-1 active:scale-95 ml-2 sm:ml-0"
+            className="sm:hidden bg-red-500 hover:bg-red-600 text-white font-bold p-2 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2"
           >
             <FiPower />
           </button>
         </div>
         <button
           onClick={handleLogout}
-          className="hidden sm:block bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-3xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-1 active:scale-95"
+          className="hidden sm:block bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded-3xl transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2"
         >
           Clear Chat
         </button>
