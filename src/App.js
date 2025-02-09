@@ -161,7 +161,7 @@ function Chatbot() {
       let botMessage;
 
       if (
-        selectedModel === "gemini-2.0-flash-thinking-exp" &&
+        selectedModel === "gemini-2.0-flash-thinking-exp-01-21" &&
         responseParts.length >= 2
       ) {
         botMessage = {
