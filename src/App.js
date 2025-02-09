@@ -107,7 +107,7 @@ function Chatbot() {
   const [inputPlaceholder, setInputPlaceholder] = useState("Type something...");
   const [messages, setMessages] = useState([]);
   const [typing, setTyping] = useState(false);
-  const [selectedModel, setSelectedModel] = useState("gemini-2.0-flash-exp");
+  const [selectedModel, setSelectedModel] = useState("gemini-2.0-flash");
   const chatboxRef = useRef(null);
   const userMessageRef = useRef(null);
 
@@ -124,10 +124,8 @@ function Chatbot() {
   }, [messages]);
 
   const modelOptions = [
-    { id: "flash-2.0", value: "gemini-2.0-flash, label: "Gemini 2
-    0. Flash" },
-    { id: "pro2.0" value: "gemini-2.0-pro-exp-02
-      05", label: "Gemini 2.0 Pro Experimental 02-05" },
+    { id: "flash-2.0", value: "gemini-2.0-flash, label: "Gemini 2.0 Flash" },
+    { id: "pro-2.0" value: "gemini-2.0-pro-exp-02-05", label: "Gemini 2.0 Pro Experimental 02-05" },
     {
       id: "flash-thinking-exp",
       value: "gemini-2.0-flash-thinking-01-21",
